@@ -1,0 +1,78 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
+
+Map storage = {};
+
+class Cache {
+  static Color getImageColor(bytes) {
+    img.Image? bitmap = img.decodeImage(bytes);
+
+    int red = 0, green = 0, blue = 0;
+    int size = bitmap!.height * bitmap.width;
+    for (int y = 0; y < bitmap.height; y++) {
+      for (int x = 0; x < bitmap.width; x++) {
+        int c = bitmap.getPixel(x, y);
+        red += img.getRed(c);
+        green += img.getGreen(c);
+        blue += img.getBlue(c);
+      }
+    }
+
+    if (red ~/ size < 60 && green ~/ size < 60 && blue ~/ size < 60) {
+      return Color.fromRGBO(
+          255 - (red ~/ size), 255 - (green ~/ size), 255 - (blue ~/ size), 1);
+    }
+
+    if (red > blue && red > green) {
+      red += ((red ~/ size) ~/ 2.89) * size;
+    } else if (blue > red && blue > green) {
+      blue += ((blue ~/ size) ~/ 2.89) * size;
+    } else {
+      green += ((green ~/ size) ~/ 2.89) * size;
+    }
+    return Color.fromRGBO(
+        ((red ~/ size)), ((green ~/ size) + 30), ((blue ~/ size)), 1);
+  }
+
+  static ImageProvider<Object> getImageFromMemory(String url) {
+    if (storage.containsKey(url)) {
+      return Image.memory(convertToBytes(storage[url].keys.toList()[0])).image;
+    }
+    return NetworkImage(url);
+  }
+
+  static Uint8List convertToBytes(var r) => base64Decode((r));
+
+  static Future<Map> getProfileImageBytes(String url) async {
+    Map data = await Storage.get(key: "profile_image_bytes");
+    if (!data.containsKey(url)) {
+      http.Response r = await http.get(Uri.parse(url));
+      data[url] = {
+        base64Encode(r.bodyBytes):
+            Cache.getImageColor(r.bodyBytes).value.toString()
+      };
+    }
+    Storage.update(key: "profile_image_bytes", data: data);
+    storage = data;
+    return data[url];
+  }
+}
+
+class Storage {
+  static Future<Map> get({required String key}) async {
+    var _data = await FlutterSecureStorage().read(key: key);
+    if (_data == null) {
+      update(key: key, data: {});
+      return {};
+    }
+    return json.decode(_data);
+  }
+
+  static Future<void> update({required String key, required Map data}) async =>
+      await FlutterSecureStorage().write(key: key, value: jsonEncode(data));
+}

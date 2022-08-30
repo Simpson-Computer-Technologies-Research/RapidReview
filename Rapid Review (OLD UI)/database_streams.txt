@@ -1,0 +1,93 @@
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:rapid_review/pages/request_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rapid_review/widgets/cards.dart';
+import 'package:rapid_review/data/_theme.dart';
+import 'package:rapid_review/data/_cache.dart';
+import 'package:rapid_review/data/_user.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class RequestsStream extends StatelessWidget {
+  RequestsStream({Key? key, required this.sideMenuKey}) : super(key: key);
+  final sideMenuKey;
+
+  Widget emptyRequests() => Row(children: <Widget>[
+        SizedBox(width: 18.w),
+        StyledCard(
+            sideMenuKey: sideMenuKey,
+            title: Text(
+              "Nothing to see here",
+              style: TextStyle(
+                  fontSize: 22.w,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textColor),
+            ),
+            subtitle: Text("Pending requests is empty",
+                style: TextStyle(
+                    fontSize: 16.w,
+                    fontWeight: FontWeight.w400,
+                    color: AppTheme.textColor)))
+      ]);
+
+  @override
+  Widget build(BuildContext context) {
+    late List users;
+    late Map data;
+    final Stream _entryStream = FirebaseFirestore.instance
+        .collection('pending-requests')
+        .doc(CurrentUser.get())
+        .snapshots();
+
+    return StreamBuilder(
+        stream: _entryStream,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return Text("Something went wrong");
+          }
+
+          if (Cache.fetch("pending-requests").isEmpty) {
+            if (snapshot.hasData) {
+              data = snapshot.data.data()["requests"];
+              Requests.update(data);
+            } else {
+              return emptyRequests();
+            }
+          } else {
+            data = Cache.fetch("pending-requests");
+          }
+          users = data.keys.toList();
+
+          return SizedBox(
+              height: 176.w,
+              child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  itemCount: users.length,
+                  itemBuilder: (context, index) => Row(children: <Widget>[
+                        SizedBox(width: 18.w),
+                        randomCard(
+                            sideMenuKey: sideMenuKey,
+                            title: Text(
+                              users[index],
+                              style: TextStyle(
+                                  fontSize: 22.w,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textColor),
+                            ),
+                            subtitle: Text(
+                                data[users[index]]["data"]["guild_name"],
+                                style: TextStyle(
+                                    fontSize: 16.w,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppTheme.textColor)),
+                            avatar: data[users[index]]["data"]["avatar_url"],
+                            onTap: () async => Get.to(
+                                () => RequestPage(user: users[index]),
+                                transition: Transition.downToUp)),
+                        SizedBox(width: 16.w),
+                      ])));
+        });
+  }
+}
