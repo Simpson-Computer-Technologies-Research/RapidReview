@@ -1,7 +1,7 @@
 # Rapid Review
 
 # About
-- I made this project about a year ago and decided to pick up on it again. It's currewnt VERY UNFINISHED as when I started the project, I was just learning flutter and golang.
+- I made this project about a year ago and decided to pick up on it again. It's currently VERY UNFINISHED as when I started the project I was just learning flutter and golang.
 
 # License
 MIT License
