@@ -1,4 +1,5 @@
 # Rapid Review
+![How-To-Make-a-Video-Resume-Plus-Top-Examples](https://user-images.githubusercontent.com/75189508/187347877-4ab2bc56-0c5b-47f7-9f80-ebc648fb722f.png)
 
 # About
 - I made this project about a year ago and decided to pick up on it again. It's currently VERY UNFINISHED as when I started the project I was just learning flutter and golang.
