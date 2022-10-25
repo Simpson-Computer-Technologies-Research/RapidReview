@@ -46,8 +46,7 @@ class Cache {
     if (!storage["profile_image_bytes"].containsKey(url)) {
       // Get the image colors from the secure storage
       if (storage["profile_image_colors"] == {}) {
-        storage["profile_image_colors"] =
-            await Storage.get(key: "profile_image_colors");
+        storage["profile_image_colors"] = await Storage.get(key: "profile_image_colors");
       }
       // HTTP Request to get the image bytes
       http.Response r = await http.get(Uri.parse(url));
@@ -55,8 +54,7 @@ class Cache {
       // Update the cache storage with the image
       if (!storage["profile_image_colors"].containsKey(url)) {
         storage["profile_image_colors"][url] = getImageColor(r.bodyBytes);
-        Storage.update(
-            key: "profile_image_colors", data: storage["profile_image_colors"]);
+        Storage.update(key: "profile_image_colors", data: storage["profile_image_colors"]);
       }
     }
     return storage;
@@ -81,6 +79,5 @@ class Storage {
   }
 
   static Future<void> update({required String key, required Map data}) async =>
-      await const FlutterSecureStorage()
-          .write(key: key, value: json.encode(data));
+      await const FlutterSecureStorage().write(key: key, value: json.encode(data));
 }

@@ -6,6 +6,6 @@ import 'package:get/get.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
+    [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((_) => runApp(const GetMaterialApp(home: HomePage())));
 }
